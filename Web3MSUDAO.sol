@@ -19,9 +19,11 @@ function mint(address to, uint amount) internal {
     _mint(to,amount);
 }
 
-    // Create a struct named mintProposal containing all relevant information
-struct mintProposal {
+// Create a struct named mintProposal containing all relevant information
+struct Proposal {
 
+    // proposalType - type of proposal, [0] = mint proposal, [1] proposal to send ether
+    uint256 proposalType;
     // description - string description of proposal
     string description;
     // reciever - recieving address of proposal
@@ -36,19 +38,17 @@ struct mintProposal {
     uint256 nayVotes;
     // executed - whether or not this proposal has been executed yet. Cannot be executed before the deadline has been exceeded.
     bool executed;
-    // voters - a mapping of CryptoDevsNFT tokenIDs to booleans indicating whether that NFT has already been used to cast a vote or not
+    // voters - a mapping of token holders to booleans indicating whether they have voted or not
     mapping(uint256 => bool) voters;
 
 }
 
 
-
-// Create a mapping of ID to Proposal
-mapping(uint256 => mintProposal) public mintProposals;
+// Create a mapping of ID to Mint Proposal
+mapping(uint256 => Proposal) public Proposals;
 
 // Number of proposals that have been created
 uint256 public numProposals;
-
 
 // Create a modifier which only allows a function to be
 // called by someone who owns at least 1 Web3MSU token
@@ -61,13 +61,14 @@ modifier tokenHolderOnly() {
 // @param _nftTokenId - the tokenID of the NFT to be purchased from FakeNFTMarketplace if this proposal passes
 // @return Returns the proposal index for the newly created proposal
 
-function createMintProposal(address _reciever, string memory _description)
+function createProposal(uint _proposalType, address _reciever, string memory _description)
     external
     tokenHolderOnly
     returns (uint256)
 {
 
-    mintProposal storage proposal = mintProposals[numProposals];
+    Proposal storage proposal = Proposals[numProposals];
+    proposal.proposalType = _proposalType;
     proposal.reciever = _reciever;
     proposal.description = _description;
 
@@ -82,7 +83,7 @@ function createMintProposal(address _reciever, string memory _description)
 // called if the given proposal's deadline has not been exceeded yet
 modifier activeProposalOnly(uint256 proposalIndex) {
     require(
-        mintProposals[proposalIndex].deadline > block.timestamp,
+        Proposals[proposalIndex].deadline > block.timestamp,
         "DEADLINE_EXCEEDED"
     );
     _;
@@ -104,7 +105,7 @@ function voteOnProposal(uint256 proposalIndex, Vote vote)
     tokenHolderOnly
     activeProposalOnly(proposalIndex)
 {
-    mintProposal storage proposal = mintProposals[proposalIndex];
+    Proposal storage proposal = Proposals[proposalIndex];
     
     uint256 votingPower = balanceOf(msg.sender);
 
@@ -118,12 +119,14 @@ function voteOnProposal(uint256 proposalIndex, Vote vote)
 }
 
 
-
 //execute proposal function
 function executeProposal(uint proposalIndex) public tokenHolderOnly {
-    mintProposal storage proposal = mintProposals[proposalIndex];
-    if (proposal.yayVotes > proposal.nayVotes) {
+    Proposal storage proposal = Proposals[proposalIndex];
+    if (proposal.yayVotes > proposal.nayVotes && proposal.proposalType == 0) {
         mint(proposal.reciever,proposal.amount);
+    }
+    else if (proposal.yayVotes > proposal.nayVotes && proposal.proposalType == 1) {
+        payable(proposal.reciever).transfer(proposal.amount);
     }
 }
 
@@ -133,11 +136,11 @@ function executeProposal(uint proposalIndex) public tokenHolderOnly {
 // and if the proposal has not yet been executed
 modifier inactiveProposalOnly(uint256 proposalIndex) {
     require(
-        mintProposals[proposalIndex].deadline <= block.timestamp,
+        Proposals[proposalIndex].deadline <= block.timestamp,
         "DEADLINE_NOT_EXCEEDED"
     );
     require(
-        mintProposals[proposalIndex].executed == false,
+        Proposals[proposalIndex].executed == false,
         "PROPOSAL_ALREADY_EXECUTED"
     );
     _;
@@ -156,6 +159,9 @@ function withdrawEther() external onlyOwner {
 receive() external payable {}
 
 fallback() external payable {}
+
+
+
 
 
 }
