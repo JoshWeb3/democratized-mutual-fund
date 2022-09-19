@@ -2,7 +2,6 @@
 
 
 users can vote on who to distribute voting power to, and how to spend money
-(still need to add the spend money part as of 9/18/22 -josh)
 
 **1. owner/eboard is minted 10,000 tokens on deployment**
 
