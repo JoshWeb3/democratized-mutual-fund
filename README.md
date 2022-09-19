@@ -1,7 +1,4 @@
-**DAO System intended for a school club**
-
-
-users can vote on who to distribute voting power to, and how to spend money
+**DAO System intended for a school club where users can vote on who to distribute voting power to, and how to spend money**
 
 **1. owner/eboard is minted 10,000 tokens on deployment**
 
