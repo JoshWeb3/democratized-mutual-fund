@@ -17,4 +17,5 @@ users can vote on who to distribute voting power to, and how to spend money
 
 **4. any token holder can call the execute proposal function if the proposal passes**
 
-  
+  ![image](https://user-images.githubusercontent.com/100609687/190954451-e8bee2d1-58d7-4afa-b094-406ec5e00933.png)
+
